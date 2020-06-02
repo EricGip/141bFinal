@@ -1,0 +1,17 @@
+---
+title: "settingup"
+author: "sta 141"
+date: "6/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+library(usethis)
+
+```{r}
+library(usethis)
+usethis::edit_r_environ("project")
+readRenviron(".Renviron")
+```

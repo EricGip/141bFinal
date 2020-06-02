@@ -25,8 +25,11 @@
 *.la
 *.a
 *.lib
+# MACOS thing, "looks unprofessional to have it on?"
+*.DS_STORE 
 
 # Executables
 *.exe
 *.out
 *.app
+.Rproj.user

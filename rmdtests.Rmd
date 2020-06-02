@@ -1,0 +1,103 @@
+---
+title: "testing"
+author: "sta 141"
+date: "6/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# making the environ file
+# usethis::edit_r_environ("project")
+# loading in api keys 
+readRenviron(".Renviron")
+```
+
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(lubridate)
+library(httr)
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+bite <- str_glue(
+  "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{ign}/?api_key={key}",
+  ign = "bite",
+  key = Sys.getenv("riotKey")
+)
+
+summonerName <- GET(
+    bite
+)
+stop_for_status(summonerName)
+json <- content(summonerName, as = "text")
+sumStats <- fromJSON(json, flatten = TRUE)
+sumStats
+
+sumStats
+
+
+ leaderBoard <- str_glue(
+  "https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5/?api_key={key}",
+  key = Sys.getenv("riotKey")
+)
+
+leaderBoardCall <- GET(
+  leaderBoard
+)
+stop_for_status(leaderBoardCall)
+json2 <- content(leaderBoardCall, as = "text")
+topRanks <- fromJSON(json2, flatten = TRUE)
+
+topRanks %>%
+  as.data.frame %>%
+  arrange(desc(topRanks$entries$leaguePoints)) %>%
+  select(entries.summonerName, entries.leaguePoints)
+  
+
+
+
+```
+
+```{r}
+# you might need to change your working directory and restart R session to make it work
+r <- GET(
+  "https://api.geodatasource.com/cities",
+  query = list(
+    key = Sys.getenv("GEODATA_KEY"),
+    lat = 38.5449,
+    lng = -121.741
+  )
+)
+stop_for_status(r)
+json <- content(r, as = "text")
+fromJSON(json)
+```
+
+```{r}
+allTickers <- str_glue(
+  "https://api.coinlore.net/api/tickers/?start={start}&limit={end}",
+  start = 0,
+  end = 15
+)
+
+allTickersCall <- GET(
+  allTickers
+)
+stop_for_status(allTickersCall)
+tickets <- content(allTickersCall, as = "text")
+tickets2 <- fromJSON(tickets, flatten = TRUE)
+
+tickets2
+
+tickets2 %>%
+  
+```
+
