@@ -10,7 +10,6 @@ library(tidyverse)
 library(jsonlite)
 library(lubridate)
 library(httr)
-library(ggplot2)
 library(dplyr)
 library(shiny)
 library(usethis)
@@ -18,7 +17,7 @@ library(DT)
 
 # loading in api keys 
 # usethis::edit_r_environ("project")
-readRenviron(".Renviron")
+# readRenviron(".Renviron")
 
 # Meal API choices for sidebar. 
 categories <- fromJSON("https://www.themealdb.com/api/json/v1/1/categories.php")
@@ -39,12 +38,17 @@ ui <- fluidPage(
                        #start of about panel
                        tabPanel("About", 
                                 titlePanel("About"),
+                                tags$h3("Eric Gip 141B Final"),
                                 tags$h3("About this project"),
-                                tags$p("This Shiny app takes advantage of the TheMealDB API, TheCocktailDB API, and the Riot Games API."),
+                                tags$p("This Shiny app takes advantage of the TheMealDB API and TheCocktailDB API."),
+                                tags$p("You're able to search for a meal Id by category or area then search for the meal ID to get a YouTube tutorial or recipe source to make it at home. You can also just search for a random meal. If the API does not contain a tutorial, it is still a great tool for referencing and choosing a meal."),
+                                tags$p("For a drink / cocktail, you're able to search for an ID by a category or ingredient, then enter the ID to find the drink name, serving glass, and instructions. Disclaimer: I didn't make the database and not responsible for cocktail names (see Other/Unknown category for a laugh)"),
+                                tags$a("https://www.themealdb.com/api.php", "https://www.thecocktaildb.com/api.php"),
                                 tags$h3("Challenging and enjoyable parts of the project"),
-                                tags$p("This was challenging because I had to learn a completely new framework and work in a statistical language, R, that isn't tradionally used for web development. I'm amazed at how far you can push DOM manipulation and create a site without having to learn 3 different languages (HTML, CSS, JS). However, after learning the Shiny framework I have a new appreciation for front-end development and will never take Bootstrap/React for granted ever again..."),
+                                tags$p("This was challenging because I had to learn a completely new framework and work in a statistical language, R, that isn't tradionally used for web development. I'm amazed at how far you can push DOM manipulation and create a site without having to learn 3 different languages (HTML, CSS, JS). However, after learning the Shiny framework I have a new appreciation for front-end development and will never take Bootstrap/React for granted ever again... I'm really amazed that these two panels took almost 400 lines of code."),
+                                tags$p("I had another panel for the Riot Games API, but unforunately it had no place here; you can see the finished, but unused source code in the other shiny app folders."),
                                 tags$h3("Why I chose these APIs"),
-                                tags$p("Since this was an individual project instead of a group project, I embraced the freedom given and added all the APIs that interested me. I enjoy cooking, but am often as a loss at what to cook; this API allows me to easily pick a dinner with a drink on the side. I am also among the top 500 players in League Of Legends, but unable to play as much as I did before college. I am easily able to keep track of the Most Efficient Tactics Available (META) by seeing familiar names and knowing their playstyles to determine what the optimal playstyle is on the current patch just by few simple API calls compared to manually looking up leaderboards.")
+                                tags$p("Since this was an individual project instead of a group project, I embraced the freedom given and added all the APIs that interested me. I enjoy cooking, but am often as a loss at what to cook; this API allows me to easily pick a dinner with a drink on the side.")
                        ),
                        
                        #end of about panel
@@ -52,7 +56,7 @@ ui <- fluidPage(
                        # start of meal panel
                        tabPanel("Meal Generator", 
                                 # Application title
-                                titlePanel("Pick a Meal, any meal"),
+                                titlePanel("Pick a Meal"),
                                 
                                 # Sidebar with a slider input for number of bins 
                                 sidebarLayout(
@@ -69,7 +73,7 @@ ui <- fluidPage(
                                         tags$br("After searching by category or area, enter the Meal ID here."),
                                         tags$br(),
                                         
-                                        textInput(inputId = "searchMealId", label = "Enter Meal ID", value = "52772", placeholder = "Enter Meal ID here"),
+                                        textInput(inputId = "searchMealId", label = "Enter Meal ID", placeholder = "Enter Meal ID here"),
                                         actionButton(inputId = "searchById", label = "Search by Id"),
                                         tags$br(),
                                         tags$br("Alternatively, search for a random meal here."),
@@ -81,10 +85,10 @@ ui <- fluidPage(
                                     
                                     # Show a plot of the generated distribution
                                     mainPanel(
-                                        tableOutput("catSearchOut"),
-                                        tableOutput("areaSearchOut"),
-                                        tableOutput("randomMealOut"),
-                                        tableOutput("mealIdSearchOut")
+                                        DT::dataTableOutput("catSearchOut"),
+                                        DT::dataTableOutput("areaSearchOut"),
+                                        DT::dataTableOutput("mealIdSearchOut"),
+                                        DT::dataTableOutput("randomMealOut")
                                         
                                     )
                                 )
@@ -103,38 +107,29 @@ ui <- fluidPage(
                                         
                                         selectInput(inputId = "drinkIngredSelect", label = "Alternatively, Pick a drink ingredient", choices = drinkIngredients$drinks$strIngredient1),
                                         actionButton(inputId = "drinkIngredSearch", label = "Search drink by ingredient"),
+                                        
                                         tags$br(),
+                                        tags$br(),
+                                        
+                                        textInput(inputId = "drinkIdInput", label = "Enter Drink ID here!", placeholder = "Enter a drink id here!"),
+                                        
+                                        actionButton(inputId = "drinkIdSearch", label = "Search drink by ID"),
+                                        
                                         tags$h5("Let fate decide: "),
                                         actionButton(inputId = "randomDrinkSearch", label = "Search for a random drink")
-                                        
                                         
                                     ),
                                     
                                     mainPanel(
-                                        tableOutput("drinkCatSearchOut"),
-                                        tableOutput("randomDrinkOut")
-                                    )
-                                )
-                       ),
-                       # end of cocktail panel
-                       
-                       # start of riot panel
-                       tabPanel("League of Legends API",
-                                titlePanel("Search for a player or the top 200 players."),
-                                sidebarLayout(
-                                    sidebarPanel(
-                                        actionButton(inputId = "searchChal", label = "Show current leaderboards"),
-                                        tags$br(),
-                                        tags$br(),
-                                        textInput(inputId = "searchPlayer", label = "Search player match history", value = "doublelift", placeholder = "Enter summoner name here"),
-                                    ),
-                                    mainPanel(
-                                        tableOutput("lpOut"),
-
+                                        DT::dataTableOutput("drinkCatSearchOut"),
+                                        DT::dataTableOutput("IngredDrinkOut"),
+                                        DT::dataTableOutput("drinkIdOut"),
+                                        DT::dataTableOutput("randomDrinkOut"),
                                     )
                                 )
                        )
-                       # end of riot panel
+                       # end of cocktail panel
+                       
                        ## end of shinyUI
     ))
     
@@ -149,32 +144,43 @@ server <- function(input, output) {
     # Button to search meal by category 
     
     ## have to set our search to the category?, just use nested observeEvent i guess.
-    
-    observeEvent(input$catChoices, {
-        getCategory <- str_glue("https://www.themealdb.com/api/json/v1/1/filter.php?c={categorySearch}",
-                                categorySearch = input$catChoices)
-        categoryCall <- GET(
-            getCategory
-        )
-        #stop_for_status(categoryCall)
-        catJson <- content(categoryCall, as = "text", encoding = "utf-8")
-        catMeal <- fromJSON(catJson, flatten = TRUE)
-        
-        observeEvent(input$searchCat, {
-            output$catSearchOut <- renderTable({
-                catMeal %>%
-                    as.data.frame %>%
-                    select(meals.strMeal, meals.idMeal)
-            })
-        })
+    # guess we shouldnt do that
+
+  
+  categorySearch <- reactive({
+
+    getCategory <- str_glue("https://www.themealdb.com/api/json/v1/1/filter.php?c={categoryValue}",
+                            categoryValue = input$catChoices)
+  
+    categoryCall <- GET(
+      getCategory
+    )
+    stop_for_status(categoryCall)
+    catJson <- content(categoryCall, as = "text", encoding = "utf-8")
+    catMeal <- fromJSON(catJson, flatten = TRUE)
+  })
+  
+  observeEvent(input$searchCat, { 
+    output$catSearchOut <- DT::renderDataTable({
+      # dependency on button search
+      input$searchCat
+      
+      DT::datatable(isolate(categorySearch()) %>%
+        as.data.frame() %>%
+          select(meals.strMeal, meals.idMeal),
+        colnames = c("Meal Names", "Meal Ids")
+      )
     })
+  })
     
+    
+  
     # end of category search 
     
     # button to search by area
     
     ## TO DO -- MAYBE SHOW PICTURES, FIX COLUMNS. 
-    observeEvent(input$areaChoices, {
+    areaSearch <- reactive({
         getArea <- str_glue("https://www.themealdb.com/api/json/v1/1/filter.php?a={area}",
                             area = input$areaChoices)
         
@@ -184,13 +190,19 @@ server <- function(input, output) {
         stop_for_status(areaCall)
         areaJson <- content(areaCall, as = "text", encoding = "utf-8")
         areaMeals <- fromJSON(areaJson, flatten = TRUE)
-        
+    })
+    
         observeEvent(input$searchArea, {
-            output$areaSearchOut <- renderTable({
-                areaMeals
+            output$areaSearchOut <- DT::renderDataTable({
+                input$searchArea
+              
+              DT::datatable(isolate(areaSearch()) %>%
+                  as.data.frame() %>% 
+                  select(meals.strMeal, meals.idMeal), 
+                  colnames = c("Meal Name", "Meal ID")
+              )
             })
         })
-    })
     
     # end of button to search by area
     
@@ -199,24 +211,33 @@ server <- function(input, output) {
     # To do
     # breaks when invalid mealId is entered... need to make it pause and only "onCLick?"
     # need to make the columns rows or find a better way to display this like the random meal. 
-    observeEvent(input$searchMealId, {
-        observeEvent(input$searchById, {
-            getMealById <- str_glue("https://www.themealdb.com/api/json/v1/1/lookup.php?i={mealId}",
-                                    mealId = input$searchMealId)
-            
-            mealIdCall <- GET(
-                getMealById
-            )
-            stop_for_status(mealIdCall)
-            mealIdJson <- content(mealIdCall, as = "text", encoding = "utf-8")
-            MealIdMeals <- fromJSON(mealIdJson, flatten = TRUE)
-            
-            output$mealIdSearchOut <- renderTable({
-                MealIdMeals
-            })
-        })
-    })
+    searchMealId <- reactive({
+      
+      getMealById <- str_glue("https://www.themealdb.com/api/json/v1/1/lookup.php?i={mealId}",
+                              mealId = input$searchMealId)
+      
+      mealIdCall <- GET(
+        getMealById
+      )
+      stop_for_status(mealIdCall)
+      mealIdJson <- content(mealIdCall, as = "text", encoding = "utf-8")
+      MealIdMeals <- fromJSON(mealIdJson, flatten = TRUE)
     
+    })
+    #watching this button
+    observeEvent(input$searchById, {
+      output$mealIdSearchOut <- DT::renderDataTable({
+        
+        #dependency
+        input$searchById
+        
+        DT::datatable(isolate(searchMealId()) %>%
+          as.data.frame %>%
+            select(meals.idMeal, meals.strMeal, meals.strCategory, meals.strArea, meals.strTags, meals.strYoutube, meals.strSource), 
+          colnames = c("Meal ID", "Meal Name", "Category", "Area", "Tags", "Youtube Tutorial", "Recipe Source")
+      )
+    })
+  })    
     
     # button to generate a random meal
     
@@ -229,8 +250,11 @@ server <- function(input, output) {
         randomMealJson <- content(randomMealCall, as = "text", encoding = "utf-8")
         randomMeal <- fromJSON(randomMealJson, flatten = TRUE)
         
-        output$randomMealOut <- renderTable({
-            randomMeal
+        output$randomMealOut <- DT::renderDataTable({
+          DT::datatable(randomMeal %>%
+                          as.data.frame %>%
+                          select(meals.idMeal, meals.strMeal, meals.strCategory, meals.strArea, meals.strTags, meals.strYoutube, meals.strSource), 
+                        colnames = c("Meal ID", "Meal Name", "Category", "Area", "Tags", "Youtube Tutorial", "Recipe Source"))
         })
     })
     
@@ -242,6 +266,102 @@ server <- function(input, output) {
     
     # Start of drinks API 
     
+    
+    # start of drinkCategory 
+    # FIXED --- NOT READING SPACES PROPERLY... -- Just URLEencode() AFTER str_glue()
+    drinkCatSelect <- reactive({
+        getDrinksCatRAW <- str_glue(
+            "https://www.thecocktaildb.com/api/json/v1/1/filter.php?c={drinkcategory}",
+            drinkcategory = input$drinkCatSelect
+        )
+        # encoding the space hopefully
+        getDrinksCat <- URLencode(getDrinksCatRAW)
+        
+        drinksCatCall <- GET(
+            getDrinksCat
+        )
+        stop_for_status(drinksCatCall)
+        drinksCatJson <- content(drinksCatCall, as = "text", encoding = "utf-8")
+        catDrinks <- fromJSON(drinksCatJson, flatten = TRUE)
+        })
+    
+    observeEvent(input$drinkCatSearch, {
+      output$drinkCatSearchOut <- DT::renderDataTable({
+        
+        input$drinkCatSearch
+        
+        DT::datatable(isolate(drinkCatSelect()) %>%
+          as.data.frame %>% 
+            select(drinks.strDrink, drinks.idDrink), 
+            colnames = c("Drink Name", "Drink Id")
+        )
+      })
+    })
+    # end of drinksCategory       
+  
+    # start of drinksIngredient
+    
+    drinksIngredSelect <- reactive({
+      getDrinkByIngredRAW <- str_glue("https://www.thecocktaildb.com/api/json/v1/1/filter.php?i={ingred}",
+                                      ingred = input$drinkIngredSelect)
+      getDrinkByIngred <- URLencode(getDrinkByIngredRAW)
+      
+      drinksIngredCall <- GET(
+        getDrinkByIngred
+      )
+      stop_for_status(drinksIngredCall)
+      drinksIngredJson <- content(drinksIngredCall, as = "text", encoding = "utf-8")
+      drinksIngredDrinks <- fromJSON(drinksIngredJson, flatten = TRUE)
+    })
+    
+    observeEvent(input$drinkIngredSearch, {
+      output$IngredDrinkOut <- DT::renderDataTable({
+        #dependency
+        input$drinkIngredSearch
+        
+        DT::datatable(isolate(drinksIngredSelect()) %>%
+          as.data.frame() %>%
+            select(drinks.strDrink, drinks.idDrink),
+          colnames = c("Drink Name", "Drink ID")
+        )
+      })
+    })
+    
+    # end of drinksIngredient
+    
+    # start of drinkIdSearch
+    
+    drinkIdSearch <- reactive({
+      getDrinkByIdRAW <- str_glue("https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i={drinkId}",
+                                  drinkId = input$drinkIdInput)
+      
+      getDrinkById <- URLdecode(getDrinkByIdRAW)
+      
+      drinkIdCall <- GET(
+        getDrinkById
+      )
+      stop_for_status(drinkIdCall)
+      drinkIdJson <- content(drinkIdCall, as = "text", encoding = "utf-8")
+      drinkIdDrinks <- fromJSON(drinkIdJson, flatten = TRUE) 
+    })
+    
+    observeEvent(input$drinkIdSearch, {
+      output$drinkIdOut <- DT::renderDataTable({
+        #dependency 
+        input$drinkIdSearch
+        
+        DT::datatable(isolate(drinkIdSearch()) %>%
+                        as.data.frame %>%
+                        select(drinks.idDrink, drinks.strDrink, drinks.strCategory, drinks.strAlcoholic, drinks.strGlass, drinks.strInstructions),
+                      colnames = c("Drink ID", "Drink Name", "Drink category", "Is this alcoholic?", "Serving Glass", "Drink Instructions")
+        
+        )
+      })
+    })
+    
+    # end of drinkIdSearch
+    
+    # start of random drink
     # again, probably need to convert columns to rows or something.. 
     observeEvent(input$randomDrinkSearch, {
         getRandomDrink <- GET(
@@ -251,101 +371,18 @@ server <- function(input, output) {
         randomDrinkJson <- content(getRandomDrink, as = "text", encoding = "utf-8")
         randomDrink <- fromJSON(randomDrinkJson, flatten = TRUE)
         
-        output$randomDrinkOut <- renderTable({
-            randomDrink
+        output$randomDrinkOut <- DT::renderDataTable({
+            DT::datatable(randomDrink %>%
+            as.data.frame %>%
+            select(drinks.idDrink, drinks.strDrink, drinks.strTags, drinks.strCategory, drinks.strAlcoholic, drinks.strGlass, drinks.strInstructions), 
+          colnames = c("Drink ID", "Drink Name", "Tags", "Category", "Is this alcoholic?", "Serving Glass", "Drink Instructions")
+            )
         })
     })
     
-    # NOT READING SPACES PROPERLY... 
-    #observeEvent(input$drinkCatSelect, {
-        #getDrinksCat <- str_glue(
-        #    "https://www.thecocktaildb.com/api/json/v1/1/filter.php?c={drinkcategory}",
-        #    drinkcategory = input$drinkCatSelect
-        #)
-        
-        #drinksCatCall <- GET(
-        #    getDrinksCat
-        #)
-        #stop_for_status(drinksCatCall)
-        #drinksCatJson <- content(drinksCatCall, as = "text", encoding = "utf-8")
-        #catDrinks <- fromJSON(drinksCatJson, flatten = TRUE)
-        
-        #observeEvent(input$drinkCatSearch, {
-        #    output$drinkCatSearchOut <- renderTable({
-        #        catDrinks
-        #    })
-        #})
-        
-    #})
+    # end of randomDrinks
+    
     # end of drinks API 
-    
-    # START OF RIOT GAMES API 
-    getLeaderBoard <- str_glue(
-        "https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5/?api_key={key}",
-        key = Sys.getenv("riotKey")
-    )
-    
-    leaderBoardCall <- GET(
-        getLeaderBoard
-    )
-    stop_for_status(leaderBoardCall)
-    json2 <- content(leaderBoardCall, as = "text", encoding = "utf-8")
-    topRanks <- fromJSON(json2, flatten = TRUE)
-    
-    leaderBoard <- topRanks %>%
-        as.data.frame %>%
-        select(entries.summonerName, entries.leaguePoints) %>%
-        arrange(desc(topRanks$entries$leaguePoints))
-    
-    output$summary <- renderPrint({
-        summary(topRanks$entries$leaguePoints)
-    })
-    
-    # observing button for current challengers
-    observeEvent(input$searchChal, {
-        output$lpOut <- renderTable({
-            leaderBoard
-        })
-    })
-    
-        # end of current challengers
-    
-    # match history 
-    
-    # spacing problem, after fixing cocktail db should be able to fix this. 
-    
-    #getSummonerName <- str_glue(
-    #    "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/bite/?api_key={key}",
-    #    key = Sys.getenv("riotKey")
-    #)
-    
-    #IGNCall <- GET(
-    #    getSummonerName
-    #)
-    #stop_for_status(IGNCall)
-    #IGNJson <- content(IGNCall, as = "text", encoding = "utf-8")
-    # IGNReturn <- fromJSON(IGNJson, flatten = TRUE)
-    # 
-    # IGNReturn
-    # 
-    # getMatchHistory <- str_glue(
-    #     "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{accId}/?api_key={key}",
-    #     accId = IGNReturn$accountId,
-    #     key = Sys.getenv("riotKey")
-    # )
-    # 
-    # matchHistoryCall <- GET(
-    #     getMatchHistory
-    # )
-    # stop_for_status(matchHistoryCall)
-    # MHJson <- content(matchHistoryCall, as = "text", encoding = "utf-8")
-    # MHReturn <- fromJSON(MHJson, flatten = TRUE)
-    # 
-    # MHReturn
-    
-    # end of match history 
-
-    # END OF RIOT GAMES API
     
 }
 
