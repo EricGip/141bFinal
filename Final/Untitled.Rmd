@@ -15,3 +15,66 @@ library(usethis)
 usethis::edit_r_environ("project")
 readRenviron(".Renviron")
 ```
+```{r}
+
+# it's fixed when we add a _ for spaces, but how do we automatically do that? 
+#getSummonerName <- str_glue(
+#            "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/C9_ZVEN/?api_key={key}",
+#            key = Sys.getenv("riotKey")
+#        )
+
+getSummonerName <- str_glue(
+            "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{ign}/?api_key={key}",
+            ign = "doublelift",
+            key = Sys.getenv("riotKey")
+        )
+        
+        IGNCall <- GET(
+            getSummonerName
+        )
+        stop_for_status(IGNCall)
+        IGNJson <- content(IGNCall, as = "text")
+        IGNReturn <- fromJSON(IGNJson, flatten = TRUE)
+
+        IGNReturn
+        
+getMatchHistory <- str_glue(
+  "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{accId}/?api_key={key}",
+  accId = IGNReturn$accountId,
+  key = Sys.getenv("riotKey")
+)
+
+matchHistoryCall <- GET(
+  getMatchHistory
+)
+stop_for_status(matchHistoryCall)
+MHJson <- content(matchHistoryCall, as = "text")
+MHReturn <- fromJSON(MHJson, flatten = TRUE)
+
+MHReturn
+```
+
+```{r}
+observeEvent(input$drinkCatSelect, {
+        getDrinksCat <- str_glue(
+            "https://www.thecocktaildb.com/api/json/v1/1/filter.php?c={drinkcategory}",
+            drinkcategory = input$drinkCatSelect
+        )
+        
+        drinksCatCall <- GET(
+            getDrinksCat
+        )
+        stop_for_status(drinksCatCall)
+        drinksCatJson <- content(drinksCatCall, as = "text")
+        catDrinks <- fromJSON(drinksCatJson, flatten = TRUE)
+        
+        observeEvent(input$drinkCatSearch, {
+            output$drinkCatSearchOut <- renderTable({
+                catDrinks
+            })
+        })
+        
+        catDrinks
+    })
+
+```
