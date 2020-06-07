@@ -1,6 +1,9 @@
 # STA 141B Final
+Generate a meal and a cocktail!
 
-## Demo Link Coming Soon 
+
+# Demo Link
+https://ericgip.shinyapps.io/final/
 
 ## This Shiny app takes advantage of the TheMealDB API and TheCocktailDB API.
 You're able to search for a meal Id by category or area then search for the meal ID to get a YouTube tutorial or recipe source to make it at home.  
