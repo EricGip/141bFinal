@@ -1,0 +1,12 @@
+name: final
+title:
+username:
+account: ericgip
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2420174
+bundleId: 3244745
+url: https://ericgip.shinyapps.io/final/
+when: 1591654478.37605
+asMultiple: FALSE
+asStatic: FALSE
