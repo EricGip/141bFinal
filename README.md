@@ -1,5 +1,5 @@
 # STA 141B Final
-Generate a meal and a cocktail!
+Generate a meal and a cocktail! The code is located in `./Final/App.R`
 
 
 # Demo Link
